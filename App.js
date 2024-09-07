@@ -1,7 +1,15 @@
 import { Audio } from "expo-av";
 import { useFonts } from "expo-font";
 import React, { useEffect, useState } from "react";
-import { Button, Image, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import ConicGradient from "./ConicGradient";
 
 export default function App() {
   const [sound, setSound] = useState();
@@ -9,69 +17,21 @@ export default function App() {
   const [beepNumber, setBeepNumber] = useState(0);
   const [status, setStatus] = useState(false);
   const [duration, setDuration] = useState("time");
+  const [timer, setTimer] = useState("time");
+  const [timerShow, setTimerShow] = useState("");
   const [delay, setDelay] = useState("delay");
   const [dropMenu, setDropMenu] = useState(false);
-  let timeoutRef = React.useRef(null);
+  const [intervalMenu, setIntervalMenu] = useState(false);
+  const [timerMenu, setTimerMenu] = useState(false);
+  const [progress, setProgress] = useState(0); // Add progress state
+  let progressIntervalRef = React.useRef(null);
+  let intervalId = React.useRef(null);
   let timeoutDelayRef = React.useRef(null);
+  let timerRef = React.useRef(null);
+
   let [_] = useFonts({
     sport: require("./assets/Hard_Sports.ttf"),
   });
-
-  const handleChangeTime = (text) => {
-    const isValidNumber = /^(\d+(\.\d*)?|\.\d+)$/.test(text);
-    if (isValidNumber) {
-      setDuration(text);
-    } else {
-      setDuration("");
-    }
-  };
-  const handleChangeDelay = (text) => {
-    const isValidNumber = /^(\d+(\.\d*)?|\.\d+)$/.test(text);
-    if (isValidNumber) {
-      setDelay(text);
-    } else {
-      setDelay("");
-    }
-  };
-
-  const start = () => {
-    if (!sound || duration === "time") {
-      return;
-    }
-    if (delay === "delay") {
-      perform();
-      setStatus(true);
-    } else {
-      setStatus(true);
-      setTimeout(() => {
-        perform();
-      }, delay * 1000);
-      timeoutDelayRef.current = setInterval(() => {
-        setDelay((prevDelay) => {
-          if (prevDelay > 0) {
-            return prevDelay - 1;
-          } else {
-            clearInterval(timeoutDelayRef.current);
-            return "delay";
-          }
-        });
-      }, 1000);
-    }
-  };
-
-  const perform = () => {
-    timeoutRef.current = setInterval(async () => {
-      await sound.replayAsync();
-      setBeepNumber((prev) => prev + 1);
-    }, duration * 1000);
-    setDelay("delay");
-  };
-
-  const stop = () => {
-    clearInterval(timeoutRef.current);
-    setStatus(false);
-    setDelay("delay");
-  };
 
   useEffect(() => {
     const loadSound = async () => {
@@ -93,6 +53,134 @@ export default function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (status && timer === "time") {
+      // Manage progress and beep sound simultaneously
+      intervalId.current = setInterval(async () => {
+        await sound.replayAsync();
+        setBeepNumber((prev) => prev + 1);
+        setProgress(0); // Reset progress to 0 each time the beep plays
+      }, duration * 1000);
+    }
+  }, [status, duration, timer, sound]);
+
+  useEffect(() => {
+    if (status && timer === "time") {
+      progressIntervalRef.current = setInterval(() => {
+        setProgress((prevProgress) => {
+          if (prevProgress == 100) {
+            return 0; // Ensure it doesn't exceed 100
+          }
+          return prevProgress + 1; // Increment progress
+        });
+      }, (duration / 100) * 1000); // Adjust the increment interval as needed
+    } else if (status && duration === "time") {
+      progressIntervalRef.current = setInterval(() => {
+        setProgress((prevProgress) => {
+          if (prevProgress == 100) {
+            clearInterval(progressIntervalRef.current);
+            return 0; // Ensure it doesn't exceed 100
+          }
+          return prevProgress + 1; // Increment progress
+        });
+      }, (timer / 100) * 1000); // Adjust the increment interval as needed
+    }
+  }, [status, duration, timer]);
+
+  const handleChangeTime = (text) => {
+    const isValidNumber = /^(\d+(\.\d*)?|\.\d+)$/.test(text);
+    if (isValidNumber) {
+      setDuration(text);
+      setTimer("time");
+    } else {
+      setDuration("");
+    }
+  };
+
+  const handleChangeDelay = (text) => {
+    const isValidNumber = /^(\d+(\.\d*)?|\.\d+)$/.test(text);
+    if (isValidNumber) {
+      setDelay(text);
+    } else {
+      setDelay("");
+    }
+  };
+
+  const handleChangeTimer = (text) => {
+    const isValidNumber = /^(\d+(\.\d*)?|\.\d+)$/.test(text);
+    if (isValidNumber) {
+      setTimer(text);
+      setTimerShow(text);
+      setDuration("time");
+    } else {
+      setTimer("");
+    }
+  };
+
+  const start = () => {
+    if (timer === "time") {
+      if (!sound || duration === "time") {
+        return;
+      }
+      if (delay === "delay") {
+        setStatus(true);
+      } else {
+        setTimeout(() => {
+          setStatus(true);
+        }, delay * 1000);
+        timeoutDelayRef.current = setInterval(() => {
+          setDelay((prevDelay) => {
+            if (prevDelay > 0) {
+              return prevDelay - 1;
+            } else {
+              clearInterval(timeoutDelayRef.current);
+              return "delay";
+            }
+          });
+        }, 1000);
+      }
+    } else {
+      setStatus(true);
+      timerRef.current = setInterval(() => {
+        setTimerShow((prevTime) => {
+          if (prevTime > 1) {
+            return prevTime - 1;
+          } else {
+            sound.replayAsync();
+            clearInterval(timerRef.current);
+            setStatus(false);
+            return timer;
+          }
+        });
+      }, 1000);
+    }
+  };
+
+  const stop = () => {
+    clearInterval(progressIntervalRef.current);
+    if (timer === "time") {
+      clearInterval(intervalId.current);
+      setProgress(0)
+      setStatus(false);
+      setDelay("delay");
+    } else {
+      setStatus(false);
+      clearInterval(timerRef.current);
+    }
+  };
+
+  const reset = () => {
+    setUpValue(0);
+    stop();
+    if (timer === "time") {
+      setBeepNumber(0);
+      setProgress(0); // Reset progress on reset
+    } else {
+      setTimerShow(timer);
+      setProgress(0);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -128,26 +216,10 @@ export default function App() {
     numberBox: {
       justifyContent: "center", // Align children in the center
       color: "white", // Text color
-      width: "5rem", // Width (converted from rem to pt)
-      height: "5rem", // Height (converted from rem to pt)
+      width: "6rem", // Width (converted from rem to pt)
+      height: "6rem", // Height (converted from rem to pt)
       margin: 10, // Margin (converted from rem to pt)
       textAlign: "center", // Center text inside the component
-    },
-    imageBox: {
-      width: "70vw",
-      height: "70vw",
-      borderRadius: "10.625rem",
-      border: "solid rgb(255, 255, 255) 0.625rem",
-      backgroundImage: 'url("/assets/background.jpg")',
-      backgroundSize: "contain",
-      filter: "grayscale(0.5)",
-      overflow: "hidden",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      color: "#fff",
-      fontSize: "5rem",
-      fontWeight: "bold",
     },
     buttonsBox: {
       display: "flex",
@@ -162,8 +234,8 @@ export default function App() {
     },
     beepNumber: {
       backgroundColor: "#aeaeae",
-      width: "4.5rem",
-      height: "4.5rem",
+      width: "6rem",
+      height: "6rem",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -176,8 +248,8 @@ export default function App() {
     },
     upNumber: {
       backgroundColor: "#aeaeae",
-      width: "4.5rem",
-      height: "4.5rem",
+      width: "6rem",
+      height: "6rem",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -236,8 +308,6 @@ export default function App() {
       width: "100%",
       textAlign: "center",
       backgroundColor: "#000",
-      position: "absolute",
-      top: "0",
       paddingVertical: "0.8rem",
       fontWeight: "700",
       color: "white",
@@ -245,17 +315,38 @@ export default function App() {
       borderColor: "#fff",
       borderStyle: "solid",
     },
+    optionsBox: {
+      display: "flex",
+      position: "absolute",
+      top: "0",
+      width: "100%",
+      zIndex: "100",
+    },
+    optionItem: {
+      width: "100%",
+      textAlign: "center",
+      backgroundColor: "gray",
+      paddingVertical: "0.8rem",
+      fontWeight: "700",
+      color: "white",
+      borderBottomWidth: "2px",
+      borderColor: "#fff",
+      borderStyle: "solid",
+      display: dropMenu ? "block" : "none",
+    },
     menu: {
       width: "100vw",
       height: "100dvh",
       position: "absolute",
-      top: dropMenu ? "0" : "-50rem",
       left: "0",
       backgroundColor: "gray",
       justifyContent: "center",
       alignItems: "center",
       transition: "top 0.7s ease", // Add transition property
+      zIndex: "101",
     },
+    intervalMenu: { top: intervalMenu ? "0" : "-50rem" },
+    timerMenu: { top: timerMenu ? "0" : "-50rem" },
     close: {
       width: "100%",
       textAlign: "center",
@@ -279,10 +370,30 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text onPress={() => setDropMenu(true)} style={styles.options}>
-        {" "}
-        Options
-      </Text>
+      <View style={styles.optionsBox}>
+        <Text
+          style={styles.optionItem}
+          onPress={() => {
+            setTimerMenu(true);
+            setDropMenu(false);
+          }}
+        >
+          Timer
+        </Text>
+        <Text
+          style={styles.optionItem}
+          onPress={() => {
+            setIntervalMenu(true);
+            setDropMenu(false);
+          }}
+        >
+          Interval
+        </Text>
+        <Text onPress={() => setDropMenu(!dropMenu)} style={styles.options}>
+          {" "}
+          options
+        </Text>
+      </View>
       <View style={styles.iconsBox}>
         <View style={styles.numbersBox}>
           <View style={styles.numberBox}>
@@ -292,15 +403,18 @@ export default function App() {
             <Text style={styles.upNumber}>{upValue}</Text>
           </View>
         </View>
-        <View style={styles.imageBox}>{delay !== "delay" && delay}</View>
+        <SafeAreaView>
+          <ConicGradient
+            progress={progress}
+            timer={timer}
+            delay={delay}
+            timerShow={timerShow}
+          />
+        </SafeAreaView>
         <View style={styles.buttonsBox}>
           <Text
             style={{ ...styles.button, ...styles.resetBtn }}
-            onPress={() => {
-              setBeepNumber(0);
-              setUpValue(0);
-              stop();
-            }}
+            onPress={reset}
           >
             Reset
           </Text>
@@ -330,11 +444,11 @@ export default function App() {
           </Text>
         </View>
       </View>
-      <View style={styles.menu}>
+      <View style={{ ...styles.menu, ...styles.intervalMenu }}>
         {" "}
         <Image
           style={styles.timerImg}
-          source={require("./assets/stopwatch.png")}
+          source={require("./assets/notification.png")}
         ></Image>
         <View style={styles.inputBox}>
           <TextInput
@@ -350,7 +464,26 @@ export default function App() {
             style={{ ...styles.delay, ...styles.input }}
           />
         </View>
-        <Text style={styles.close} onPress={() => setDropMenu(false)}>
+        <Text style={styles.close} onPress={() => setIntervalMenu(false)}>
+          {" "}
+          close
+        </Text>
+      </View>
+      <View style={{ ...styles.menu, ...styles.timerMenu }}>
+        {" "}
+        <Image
+          style={styles.timerImg}
+          source={require("./assets/stopwatch.png")}
+        ></Image>
+        <View style={styles.inputBox}>
+          <TextInput
+            keyboardType="numeric"
+            value={String(timer)}
+            onChangeText={handleChangeTimer}
+            style={{ ...styles.duration, ...styles.input }}
+          />
+        </View>
+        <Text style={styles.close} onPress={() => setTimerMenu(false)}>
           {" "}
           close
         </Text>
