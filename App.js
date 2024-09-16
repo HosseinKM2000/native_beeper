@@ -3,13 +3,12 @@ import { useFonts } from "expo-font";
 import React, { useEffect, useState } from "react";
 import {
   Image,
-  SafeAreaView,
+  ImageBackground,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import ConicGradient from "./ConicGradient";
 
 export default function App() {
   const [sound, setSound] = useState();
@@ -23,12 +22,11 @@ export default function App() {
   const [dropMenu, setDropMenu] = useState(false);
   const [intervalMenu, setIntervalMenu] = useState(false);
   const [timerMenu, setTimerMenu] = useState(false);
-  const [progress, setProgress] = useState(0); // Add progress state
+  const [progress, setProgress] = useState(0);
   let progressIntervalRef = React.useRef(null);
   let intervalId = React.useRef(null);
   let timeoutDelayRef = React.useRef(null);
   let timerRef = React.useRef(null);
-
   let [_] = useFonts({
     sport: require("./assets/Hard_Sports.ttf"),
   });
@@ -56,11 +54,10 @@ export default function App() {
 
   useEffect(() => {
     if (status && timer === "time") {
-      // Manage progress and beep sound simultaneously
       intervalId.current = setInterval(async () => {
         await sound.replayAsync();
         setBeepNumber((prev) => prev + 1);
-        setProgress(0); // Reset progress to 0 each time the beep plays
+        setProgress(0);
       }, duration * 1000);
     }
   }, [status, duration, timer, sound]);
@@ -70,21 +67,21 @@ export default function App() {
       progressIntervalRef.current = setInterval(() => {
         setProgress((prevProgress) => {
           if (prevProgress == 100) {
-            return 0; // Ensure it doesn't exceed 100
+            return 0;
           }
-          return prevProgress + 1; // Increment progress
+          return prevProgress + 1;
         });
-      }, (duration / 100) * 1000); // Adjust the increment interval as needed
+      }, (duration / 100) * 1000);
     } else if (status && duration === "time") {
       progressIntervalRef.current = setInterval(() => {
         setProgress((prevProgress) => {
           if (prevProgress == 100) {
             clearInterval(progressIntervalRef.current);
-            return 0; // Ensure it doesn't exceed 100
+            return 0;
           }
-          return prevProgress + 1; // Increment progress
+          return prevProgress + 1;
         });
-      }, (timer / 100) * 1000); // Adjust the increment interval as needed
+      }, (timer / 100) * 1000);
     }
   }, [status, duration, timer]);
 
@@ -161,7 +158,7 @@ export default function App() {
     clearInterval(progressIntervalRef.current);
     if (timer === "time") {
       clearInterval(intervalId.current);
-      setProgress(0)
+      setProgress(0);
       setStatus(false);
       setDelay("delay");
     } else {
@@ -175,7 +172,7 @@ export default function App() {
     stop();
     if (timer === "time") {
       setBeepNumber(0);
-      setProgress(0); // Reset progress on reset
+      setProgress(0);
     } else {
       setTimerShow(timer);
       setProgress(0);
@@ -188,93 +185,91 @@ export default function App() {
       backgroundColor: "#fff",
       alignItems: "center",
       justifyContent: "center",
-      backgroundImage: "url(/assets/background.jpg)",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
       width: "100%",
-      position: "relative",
-      height: "100dvh",
+      height: "100%",
     },
     iconsBox: {
-      display: "flex",
       flexDirection: "column",
       justifyContent: "center",
       alignItems: "center",
       width: "100%",
-      position: "relative",
     },
     numbersBox: {
-      display: "flex",
       width: "100%",
       justifyContent: "center",
       alignItems: "center",
-      height: "8rem",
+      height: 128,
       flexDirection: "row",
-      paddingHorizontal: "1rem",
+      paddingHorizontal: 16,
     },
     numberBox: {
-      justifyContent: "center", // Align children in the center
-      color: "white", // Text color
-      width: "6rem", // Width (converted from rem to pt)
-      height: "6rem", // Height (converted from rem to pt)
-      margin: 10, // Margin (converted from rem to pt)
-      textAlign: "center", // Center text inside the component
+      justifyContent: "center",
+      color: "white",
+      width: 96,
+      height: 96,
+      margin: 10,
+      textAlign: "center",
     },
     buttonsBox: {
-      display: "flex",
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      height: "150px",
-      display: "flex",
+      height: 150,
       width: "100%",
-      marginBottom: "20px",
+      marginBottom: 20,
       flexWrap: "wrap",
     },
     beepNumber: {
       backgroundColor: "#aeaeae",
-      width: "6rem",
-      height: "6rem",
-      display: "flex",
+      width: 96,
+      height: 96,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: "2.5rem",
-      textShadow: "0.3125rem 0.3125rem 0.4375rem rgb(86 86 86)",
-      border: "solid 0.3125rem #fff",
-      paddingRight: "0.625rem",
+      borderRadius: 40,
+      borderColor: "#fff",
+      borderWidth: 5,
+      paddingRight: 10,
       fontFamily: "sport",
-      fontSize: "2.5rem",
+      fontSize: 40,
+      textAlign: "center",
+      textShadowColor: "rgba(86, 86, 86, 0.5)",
+      textShadowOffset: { width: 5, height: 5 },
+      textShadowRadius: 7,
     },
     upNumber: {
       backgroundColor: "#aeaeae",
-      width: "6rem",
-      height: "6rem",
-      display: "flex",
+      width: 96,
+      height: 96,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: "2.5rem",
-      textShadow: "0.3125rem 0.3125rem 0.4375rem rgb(86 86 86)",
-      border: "solid 0.3125rem #fff",
-      paddingRight: "0.625rem",
+      borderRadius: 40,
+      borderColor: "#fff",
+      borderWidth: 5,
+      paddingRight: 10,
       fontFamily: "sport",
-      fontSize: "2.5rem",
+      fontSize: 40,
+      textAlign: "center",
+      textShadowColor: "rgba(86, 86, 86, 0.5)",
+      textShadowOffset: { width: 5, height: 5 },
+      textShadowRadius: 7,
     },
     button: {
-      display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      width: "25vw",
-      height: "25vw",
-      borderRadius: "93px",
-      border: "none",
+      display: "flex",
+      width: 100, // Adjusted to fit better in the layout
+      height: 100, // Adjusted to fit better in the layout
+      borderRadius: 50,
+      borderWidth: 0,
+      margin: 5,
       fontFamily: "sport",
-      fontSize: "2rem",
-      margin: "auto",
-      textShadow: "3px 3px 4px rgb(90 90 90)",
+      fontSize: 20,
+      textShadowColor: "rgba(90, 90, 90, 0.5)",
+      textShadowOffset: { width: 3, height: 3 },
+      textShadowRadius: 4,
       color: "white",
-      cursor: "pointer",
-      userSelect: "none",
+      textAlign: "center", // Center text horizontally
+      lineHeight: 85, // Ensure line height matches height for vertical centering
     },
     upBtn: { backgroundColor: "gray" },
     resetBtn: { backgroundColor: "gray" },
@@ -288,17 +283,13 @@ export default function App() {
     },
     input: {
       width: "80%",
-      height: "100%",
       textAlign: "center",
-      fontSize: "1.5rem",
-      outline: "none",
-      border: "5px solid grey",
-      fontSize: "30px",
-      fontWeight: "100",
-      paddingVertical: "0.3rem",
+      fontSize: 24,
+      borderWidth: 5,
+      borderColor: "grey",
+      paddingVertical: 4.8,
     },
     inputBox: {
-      display: "flex",
       flexDirection: "column",
       width: "100%",
       justifyContent: "center",
@@ -308,68 +299,101 @@ export default function App() {
       width: "100%",
       textAlign: "center",
       backgroundColor: "#000",
-      paddingVertical: "0.8rem",
+      paddingVertical: 12.8,
       fontWeight: "700",
       color: "white",
-      borderBottomWidth: "2px",
+      borderBottomWidth: 2,
       borderColor: "#fff",
-      borderStyle: "solid",
     },
     optionsBox: {
-      display: "flex",
       position: "absolute",
-      top: "0",
+      top: 0,
       width: "100%",
-      zIndex: "100",
+      zIndex: 100,
     },
     optionItem: {
       width: "100%",
       textAlign: "center",
       backgroundColor: "gray",
-      paddingVertical: "0.8rem",
+      paddingVertical: 12.8,
       fontWeight: "700",
       color: "white",
-      borderBottomWidth: "2px",
+      borderBottomWidth: 2,
       borderColor: "#fff",
-      borderStyle: "solid",
-      display: dropMenu ? "block" : "none",
+      display: dropMenu ? "flex" : "none",
     },
     menu: {
-      width: "100vw",
-      height: "100dvh",
+      width: "100%",
+      height: "100%",
       position: "absolute",
-      left: "0",
+      left: 0,
       backgroundColor: "gray",
+      display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      transition: "top 0.7s ease", // Add transition property
-      zIndex: "101",
+      zIndex: 101,
     },
-    intervalMenu: { top: intervalMenu ? "0" : "-50rem" },
-    timerMenu: { top: timerMenu ? "0" : "-50rem" },
+    intervalMenu: { top: intervalMenu ? 0 : -1000 },
+    timerMenu: { top: timerMenu ? 0 : -1000 },
     close: {
       width: "100%",
       textAlign: "center",
       backgroundColor: "red",
       position: "absolute",
-      bottom: "0",
-      paddingVertical: "0.8rem",
+      bottom: 0,
+      paddingVertical: 12.8,
       color: "white",
       fontWeight: "700",
     },
     arrowDown: {
-      transform: "scale(0.5)",
+      transform: [{ scale: 0.5 }],
     },
     timerImg: {
       position: "absolute",
-      top: "5rem",
+      top: 80,
       left: "50%",
-      transform: "translate(-50%, 0%)",
+      transform: [{ translateX: -50 }],
+    },
+    imageBox: {
+      width: "70vw",
+      height: "70vw",
+      borderRadius: 170,
+      backgroundImage: 'url("/assets/background.jpg")',
+      backgroundSize: "contain",
+      filter: "grayscale(0.5)",
+      overflow: "hidden",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      color: "#fff",
+      fontSize: 80,
+      fontWeight: "bold",
+      zIndex: 2,
+    },
+    imageContainer: {
+      position: "relative",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    pseudoImageBox: {
+      width: "75vw",
+      height: "75vw",
+      position: "absolute",
+      left: "50%",
+      transform: [{ translateX: -50 }, { translateY: 0 }],
+      background: `conic-gradient(orange ${progress}%, white 0)`,
+      borderRadius: 170,
+      zIndex: 1,
     },
   });
 
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={require("./assets/background.jpg")}
+      style={styles.container}
+    >
       <View style={styles.optionsBox}>
         <Text
           style={styles.optionItem}
@@ -390,8 +414,7 @@ export default function App() {
           Interval
         </Text>
         <Text onPress={() => setDropMenu(!dropMenu)} style={styles.options}>
-          {" "}
-          options
+          Options
         </Text>
       </View>
       <View style={styles.iconsBox}>
@@ -403,14 +426,12 @@ export default function App() {
             <Text style={styles.upNumber}>{upValue}</Text>
           </View>
         </View>
-        <SafeAreaView>
-          <ConicGradient
-            progress={progress}
-            timer={timer}
-            delay={delay}
-            timerShow={timerShow}
-          />
-        </SafeAreaView>
+        <View style={styles.imageContainer}>
+          <View style={styles.pseudoImageBox}></View>
+          <View style={styles.imageBox}>
+            {timer === "time" ? delay !== "delay" && delay : timerShow}
+          </View>
+        </View>
         <View style={styles.buttonsBox}>
           <Text
             style={{ ...styles.button, ...styles.resetBtn }}
@@ -433,23 +454,20 @@ export default function App() {
               Stop
             </Text>
           )}
-
           <Text
             style={{ ...styles.button, ...styles.upBtn }}
-            onPress={(e) => {
-              setUpValue((pre) => pre + 1);
-            }}
+            onPress={() => setUpValue((pre) => pre + 1)}
           >
             Up
           </Text>
         </View>
       </View>
+      {/* interval menu */}
       <View style={{ ...styles.menu, ...styles.intervalMenu }}>
-        {" "}
         <Image
           style={styles.timerImg}
           source={require("./assets/notification.png")}
-        ></Image>
+        />
         <View style={styles.inputBox}>
           <TextInput
             keyboardType="numeric"
@@ -465,16 +483,15 @@ export default function App() {
           />
         </View>
         <Text style={styles.close} onPress={() => setIntervalMenu(false)}>
-          {" "}
-          close
+          Close
         </Text>
       </View>
+      {/* timer menu */}
       <View style={{ ...styles.menu, ...styles.timerMenu }}>
-        {" "}
         <Image
           style={styles.timerImg}
           source={require("./assets/stopwatch.png")}
-        ></Image>
+        />
         <View style={styles.inputBox}>
           <TextInput
             keyboardType="numeric"
@@ -484,10 +501,9 @@ export default function App() {
           />
         </View>
         <Text style={styles.close} onPress={() => setTimerMenu(false)}>
-          {" "}
-          close
+          Close
         </Text>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
